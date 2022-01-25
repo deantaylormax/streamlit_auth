@@ -18,7 +18,6 @@ def data_by_user(name):
     user_df = df.copy()
     mask = (user_df.name != name) & (user_df.name != 'Average')
     user_df.loc[mask, 'name'] = ''
-    # user_df.style.format('{:.2}')
     return user_df, df
 #plotting
 def data_plot(df, stat='moc'):
@@ -39,14 +38,28 @@ def data_plot(df, stat='moc'):
 # hra_plot = data_plot(user_data, 'hra')
 # attendance_plot = data_plot(user_data, 'attendance')
 
+#list of names from database of names
+conn = sqlite3.connect(db_file)
+cur = conn.cursor()
+cur.execute("SELECT name FROM eval_data_tbl")
+names = cur.fetchall()
+names = [x[0] for x in names if x[0] != 'Average']
+# for name in names:
+#     print(name[0])
+
+
+
 #add a login form
 st.sidebar.header("Login")
-name = st.sidebar.text_input("Your name", "", key="name") #the key assigns the word name in session variable to the input here
+name = st.sidebar.selectbox("Select a user", names, key='name')
+# name = st.sidebar.text_input("Your name", "", key="name") #the key assigns the word name in session variable to the input here
 password = st.sidebar.text_input("Your password", "", type="password")
 login_name = st.session_state.name
 user_df, df = data_by_user(name)
 all_data = ['Gina','Nadia', 'Lisa', 'Michael']
 plot_area = st.empty()
+radio_btn_area = st.empty()
+# radio_btns = st.radio("Select a user", all_data)
 
 
 if st.sidebar.button("Login"):
@@ -54,10 +67,20 @@ if st.sidebar.button("Login"):
         with st.expander("Total NP Data"):
             st.dataframe(df.style.format(subset=df.columns[1:], formatter="{:.2f}"))
         plot_area = st.plotly_chart(data_plot(df))
+        radio_btn_area = st.radio("Select a stat", ('moc', 'hra', 'attendance'))
     else:
         with st.expander("Your Data"):
             st.dataframe(user_df.style.format(subset=user_df.columns[1:], formatter="{:.2f}"))
         plot_area = st.plotly_chart(data_plot(user_df))
+        radio_btn_area = st.radio("Select a stat", ('moc', 'hra', 'attendance'))
+
+
+#add select box
+# st.sidebar.header("Select a user")
+# name = st.sidebar.selectbox("Select a user", all_data)
+
+
+
 
 # st.header("Select a stat")
 # stat = st.radio("Stat", ("moc", "hra", "attendance"))
